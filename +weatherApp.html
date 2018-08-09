@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		
+		<style type="text/css">
+			
+			*{
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			
+			.main{
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				background-color: navajowhite;
+				transition: all 2s;
+			}
+			#search{
+				background-color: #fff;
+				border: none;
+				width: 50%;
+				height: 50px;
+				display: inline-block;
+				outline: none;
+				padding: 0 20px;
+			}
+			
+			.btnSearch{
+				width: 20%;
+				height: 50px;
+				border: none;
+				border-radius: 20px;
+				text-align: center;
+				line-height: 50px;
+				background: salmon;
+				color: aliceblue;
+				margin-top: 20px;
+			}
+			.btnContinue{
+				width: 20%;
+				height: 50px;
+				border: none;
+				border-radius: 20px;
+				text-align: center;
+				line-height: 50px;
+				background: salmon;
+				color: aliceblue;
+				margin-top: 20px;
+			}
+			.result{
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 100%;
+				height: 100%;
+				background:lavenderblush;
+				display: none;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+			}
+			
+			
+		</style>
+	</head>
+	<body>
+		
+		<div class="main">
+			<input type="text" name="search" id="search" value="" placeholder="请输入想查询天气的城市名字" />
+			<button class="btnSearch">查看天气</button>
+		</div>
+		
+		<div class="result">
+			<img class="condImg" src="" />
+			<h1 class="cond"></h1>
+			<h3 class="tmp">当前温度：<span></span></h3>
+			<h3 class="fl">体感温度：<span></span></h3>
+			<button class="btnContinue">继续查天气</button>
+		</div>
+		
+		
+		
+		///////////////////////////////////////////////////////
+		
+		<script type="text/javascript">
+			
+			var bianse=document.querySelector('.main')
+			var s = function(){
+				var r = parseInt(200*Math.random())
+				var g = parseInt(200*Math.random())
+				var b = parseInt(200*Math.random())
+				bianse.style.backgroundColor = 'rgb('+r+','+g+','+b+')'
+			}
+			setInterval(s,2000)
+			
+			
+			function Ajax(url,fn){
+				var xhr = new XMLHttpRequest()
+				
+				xhr.onreadystatechange = function(e){
+					if(xhr.status==200&&xhr.readyState==4){
+						e.data = JSON.parse(xhr.responseText)
+						fn(e)
+					}
+				}
+				
+				xhr.open('GET',url)
+				xhr.send()	
+			}
+			
+			var requestWeather = function(add,fn){
+				var weatherUrl = 'https://free-api.heweather.com/s6/weather/now?location='+ add +'&key=fe6eac3ed28249fea90b77246027aa37';
+				Ajax(weatherUrl,fn)
+			}
+			
+			/*
+			requestWeather('深圳',function(res){
+				console.log(res)
+			})
+			*/
+			
+			//////////////////
+			var anb2 = document.querySelector('.btnContinue')
+			anb2.onmousedown = function(){
+				anb2.style.backgroundColor = 'skyblue'
+			}
+			anb2.onmouseup = function(){
+				anb2.style.backgroundColor = 'salmon'
+			}
+			
+			
+			
+			
+			var anb = document.querySelector('.btnSearch')
+			anb.onmousedown = function(){
+				anb.style.backgroundColor = 'skyblue'
+			}
+			anb.onmouseup = function(){
+				anb.style.backgroundColor = 'salmon'
+			}
+			
+			
+			var searchInput = document.querySelector('#search')
+			//////////////////////
+			var resultDiv = document.querySelector('.result')
+			var tmpSpan = document.querySelector('.tmp span')
+			var flSpan = document.querySelector('.fl span')
+			var condImg = document.querySelector('.condImg')
+			
+			var condH1 = document.querySelector('.cond')
+			
+			anb2.onclick = function(){
+				resultDiv.style.display = 'none'
+				searchInput.value = ''
+				var errInfo = document.querySelector('.errInfo')
+				if(errInfo){
+					errInfo.parentElement.removeChild(errInfo)
+				}
+			}
+			
+			searchInput.onkeypress = function(e){
+				if(e.key=='Enter'){
+					requestWeather(searchInput.value,function(res){
+						console.log(res)
+						if(res.data.HeWeather6[0].status == 'unknown city'){
+							console.log('没有这个城市')
+							if(document.querySelector('.errInfo')==null){
+								var newDiv = document.createElement('div')
+								newDiv.innerHTML = '没有这个城市'
+								newDiv.className = 'errInfo'
+								bianse.appendChild(newDiv)
+							}
+						}else{
+							var now = res.data.HeWeather6[0].now;
+							condImg.src = 'https://cdn.heweather.com/cond_icon/'+ now.cond_code +'.png'
+							resultDiv.style.display = 'flex'
+							condH1.innerHTML = now.cond_txt;
+							tmpSpan.innerHTML = now.tmp;
+							flSpan.innerHTML = now.fl;
+							
+							switch(now.cond_code){
+								case "100":
+									resultDiv.style.background = 'skyblue'
+									break;
+								case "101":
+									resultDiv.style.background = '#ccc'
+									break;
+								case "102":
+									resultDiv.style.background = '#efefef'
+									break;
+								case "103":
+									resultDiv.style.background = '#eee'
+									break;
+								case "104":
+									resultDiv.style.background = "#bbb"
+									break;
+								default:
+									console.log('default')
+									resultDiv.style.background = '#F4A460'
+									break;
+							}
+	
+						}	
+					})
+				}
+			}
+			
+			anb.onclick = function(){
+				requestWeather(searchInput.value,function(res){
+						console.log(res)
+						if(res.data.HeWeather6[0].status == 'unknown city'){
+							console.log('没有这个城市')
+							if(document.querySelector('.errInfo')==null){
+								var newDiv = document.createElement('div')
+								newDiv.innerHTML = '没有这个城市'
+								newDiv.className = 'errInfo'
+								bianse.appendChild(newDiv)
+							}
+						}else{
+							var now = res.data.HeWeather6[0].now;
+							condImg.src = 'https://cdn.heweather.com/cond_icon/'+ now.cond_code +'.png'
+							resultDiv.style.display = 'flex'
+							condH1.innerHTML = now.cond_txt;
+							tmpSpan.innerHTML = now.tmp;
+							flSpan.innerHTML = now.fl;
+							
+							switch(now.cond_code){
+								case "100":
+									resultDiv.style.background = 'skyblue'
+									break;
+								case "101":
+									resultDiv.style.background = '#ccc'
+									break;
+								case "102":
+									resultDiv.style.background = '#efefef'
+									break;
+								case "103":
+									resultDiv.style.background = '#eee'
+									break;
+								case "104":
+									resultDiv.style.background = "#bbb"
+									break;
+								default:
+									console.log('default')
+									resultDiv.style.background = '#F4A460'
+									break;
+							}
+	
+						}	
+					})
+				
+				
+				//window.location.href = "https://www.bilibili.com" 
+			}
+			
+			
+			
+			
+			
+			
+		</script>
+	</body>
+</html>
